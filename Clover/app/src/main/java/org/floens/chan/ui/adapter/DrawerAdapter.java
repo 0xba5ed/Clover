@@ -167,6 +167,10 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         linkHolder.text.setText(R.string.drawer_history);
                         theme().historyDrawable.apply(linkHolder.image);
                         break;
+                    case 2:
+                        linkHolder.text.setText(R.string.drawer_posts);
+                        theme().postsDrawable.apply(linkHolder.image);
+                        break;
                 }
                 break;
             case TYPE_BOARD_INPUT:
@@ -197,8 +201,9 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         switch (position) {
             case 0:
             case 1:
-                return TYPE_LINK;
             case 2:
+                return TYPE_LINK;
+            case 3:
                 return TYPE_HEADER;
             default:
                 return TYPE_PIN;
@@ -387,6 +392,9 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         case 1:
                             callback.openHistory();
                             break;
+                        case 2:
+                            callback.openSavedPosts();
+                            break;
                     }
                 }
             });
@@ -437,5 +445,7 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         void openSites();
 
         void openHistory();
+
+        void openSavedPosts();
     }
 }

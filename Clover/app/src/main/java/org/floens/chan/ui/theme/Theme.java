@@ -70,6 +70,7 @@ public class Theme {
     public ThemeDrawable backDrawable;
     public ThemeDrawable doneDrawable;
     public ThemeDrawable historyDrawable;
+    public ThemeDrawable postsDrawable;
     public ThemeDrawable listAddDrawable;
     public ThemeDrawable helpDrawable;
     public ThemeDrawable refreshDrawable;

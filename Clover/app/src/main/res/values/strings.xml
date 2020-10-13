@@ -345,6 +345,8 @@ Enable \"Play videos with external player\" in the settings to play videos with 
 
     <string name="history_screen">History</string>
 
+    <string name="saved_posts_screen">Saved Posts</string>
+
     <string name="filters_screen">Filters</string>
 
     <string name="album_download_screen">Select images (%1$d / %2$d)</string>
@@ -361,6 +363,7 @@ Enable \"Play videos with external player\" in the settings to play videos with 
 
     <string name="drawer_sites">Setup sites</string>
     <string name="drawer_history">History</string>
+    <string name="drawer_posts" translatable="false">Posts</string>
 
     <!-- Main settings -->
     <string name="settings_screen">Settings</string>

@@ -242,6 +242,11 @@ public class DrawerController extends Controller implements DrawerAdapter.Callba
         openController(new HistoryController(context));
     }
 
+    @Override
+    public void openSavedPosts() {
+        openController(new SavedPostsController(context));
+    }
+
     public void setPinHighlighted(Pin pin) {
         drawerAdapter.setPinHighlighted(pin);
         drawerAdapter.updateHighlighted(recyclerView);
