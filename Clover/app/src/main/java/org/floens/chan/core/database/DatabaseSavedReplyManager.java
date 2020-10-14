@@ -146,4 +146,14 @@ public class DatabaseSavedReplyManager {
             return query.isEmpty() ? null : query.get(0);
         };
     }
+
+    public Callable<List<SavedReply>> getSavedReplies() {
+        return () -> {
+            List<SavedReply> ret = new ArrayList<SavedReply>();
+            for (Map.Entry<Integer, List<SavedReply>> item : savedRepliesByNo.entrySet()) {
+                ret.addAll(item.getValue());
+            }
+            return ret;
+        };
+    }
 }

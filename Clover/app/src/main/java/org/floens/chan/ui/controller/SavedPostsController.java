@@ -34,8 +34,8 @@ import org.floens.chan.core.database.DatabaseSavedReplyManager;
 import org.floens.chan.core.manager.BoardManager;
 import org.floens.chan.core.model.orm.Board;
 import org.floens.chan.core.model.orm.History;
+import org.floens.chan.core.model.orm.SavedReply;
 import org.floens.chan.core.settings.ChanSettings;
-import org.floens.chan.ui.helper.HintPopup;
 import org.floens.chan.ui.toolbar.ToolbarMenuItem;
 import org.floens.chan.ui.toolbar.ToolbarMenuSubItem;
 import org.floens.chan.ui.view.CrossfadeView;
@@ -48,7 +48,6 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -69,10 +68,11 @@ public class SavedPostsController extends Controller implements
 
     private DatabaseHistoryManager databaseHistoryManager;
     private DatabaseSavedReplyManager databaseSavedReplyManager;
+    private List<History> history;
 
     private CrossfadeView crossfade;
     private RecyclerView recyclerView;
-    private HistoryAdapter adapter;
+    private SavedPostsAdapter adapter;
 
     public SavedPostsController(Context context) {
         super(context);
@@ -85,6 +85,7 @@ public class SavedPostsController extends Controller implements
 
         databaseHistoryManager = databaseManager.getDatabaseHistoryManager();
         databaseSavedReplyManager = databaseManager.getDatabaseSavedReplyManager();
+        history = databaseManager.runTask(databaseHistoryManager.getHistory());
 
         // Navigation
         navigation.setTitle(R.string.saved_posts_screen);
@@ -92,14 +93,9 @@ public class SavedPostsController extends Controller implements
         navigation.buildMenu()
                 .withItem(R.drawable.ic_search_white_24dp, this::searchClicked)
                 .withOverflow()
-                .withSubItem(R.string.history_clear, this::clearHistoryClicked)
                 .withSubItem(R.string.saved_reply_clear, this::clearSavedReplyClicked)
                 .build().build();
 
-        SwitchCompat historyEnabledSwitch = new SwitchCompat(context);
-        historyEnabledSwitch.setChecked(ChanSettings.historyEnabled.get());
-        historyEnabledSwitch.setOnCheckedChangeListener(this);
-        navigation.setRightView(historyEnabledSwitch);
 
         view = inflateRes(R.layout.controller_history);
         crossfade = view.findViewById(R.id.crossfade);
@@ -107,13 +103,10 @@ public class SavedPostsController extends Controller implements
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
 
-        adapter = new HistoryAdapter();
+        adapter = new SavedPostsAdapter();
         recyclerView.setAdapter(adapter);
         adapter.load();
 
-        if (ChanSettings.historyOpenCounter.increase() == 1) {
-            HintPopup.show(context, historyEnabledSwitch, R.string.history_toggle_hint);
-        }
     }
 
     private void searchClicked(ToolbarMenuItem item) {
@@ -168,30 +161,34 @@ public class SavedPostsController extends Controller implements
         adapter.search(entered);
     }
 
-    private class HistoryAdapter extends RecyclerView.Adapter<HistoryCell> implements DatabaseManager.TaskResult<List<History>> {
-        private List<History> sourceList = new ArrayList<>();
-        private List<History> displayList = new ArrayList<>();
+    private class SavedPostsAdapter extends RecyclerView.Adapter<PostCell> implements DatabaseManager.TaskResult<List<SavedReply>> {
+        private List<SavedReply> sourceList = new ArrayList<>();
+        private List<SavedReply> displayList = new ArrayList<>();
         private String searchQuery;
 
         private boolean resultPending = false;
 
-        public HistoryAdapter() {
+        public SavedPostsAdapter() {
             setHasStableIds(true);
         }
 
         @Override
-        public HistoryCell onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new HistoryCell(LayoutInflater.from(parent.getContext()).inflate(R.layout.cell_history, parent, false));
+        public PostCell onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new PostCell(LayoutInflater.from(parent.getContext()).inflate(R.layout.cell_history, parent, false));
         }
 
         @Override
-        public void onBindViewHolder(HistoryCell holder, int position) {
-            History history = displayList.get(position);
-            holder.thumbnail.setUrl(history.thumbnailUrl, dp(48), dp(48));
+        public void onBindViewHolder(PostCell holder, int position) {
+            SavedReply savedReply = displayList.get(position);
 
-            holder.text.setText(history.loadable.title);
-            Board board = history.loadable.board;
-            holder.subtext.setText(board == null ? null : ("/" + board.code + "/ \u2013 " + board.name));
+            for (History historyItem : history) {
+                if (savedReply.no == historyItem.loadable.no) {
+                    holder.thumbnail.setUrl(historyItem.thumbnailUrl, dp(48), dp(48));
+                }
+            }
+
+            holder.text.setText(String.valueOf(savedReply.no));
+            holder.subtext.setText(savedReply.board);
         }
 
         @Override
@@ -199,10 +196,10 @@ public class SavedPostsController extends Controller implements
             return displayList.size();
         }
 
-        @Override
-        public long getItemId(int position) {
-            return displayList.get(position).id;
-        }
+        //@Override
+        //public long getItemId(int position) {
+            //return displayList.get(position).id;
+        //}
 
         public void search(String query) {
             this.searchQuery = query;
@@ -212,12 +209,12 @@ public class SavedPostsController extends Controller implements
         private void load() {
             if (!resultPending) {
                 resultPending = true;
-                databaseManager.runTaskAsync(databaseHistoryManager.getHistory(), this);
+                databaseManager.runTaskAsync(databaseSavedReplyManager.getSavedReplies(), this);
             }
         }
 
         @Override
-        public void onComplete(List<History> result) {
+        public void onComplete(List<SavedReply> result) {
             resultPending = false;
             sourceList.clear();
             sourceList.addAll(result);
@@ -227,28 +224,18 @@ public class SavedPostsController extends Controller implements
 
         private void filter() {
             displayList.clear();
-            if (!TextUtils.isEmpty(searchQuery)) {
-                String query = searchQuery.toLowerCase(Locale.ENGLISH);
-                for (History history : sourceList) {
-                    if (history.loadable.title.toLowerCase(Locale.ENGLISH).contains(query)) {
-                        displayList.add(history);
-                    }
-                }
-            } else {
-                displayList.addAll(sourceList);
-            }
-
+            displayList.addAll(sourceList);
             notifyDataSetChanged();
         }
     }
 
-    private class HistoryCell extends RecyclerView.ViewHolder implements View.OnClickListener {
+    private class PostCell extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ThumbnailView thumbnail;
         private TextView text;
         private TextView subtext;
         private ImageView delete;
 
-        public HistoryCell(View itemView) {
+        public PostCell(View itemView) {
             super(itemView);
 
             thumbnail = itemView.findViewById(R.id.thumbnail);
@@ -266,16 +253,6 @@ public class SavedPostsController extends Controller implements
 
         @Override
         public void onClick(View v) {
-            int position = getAdapterPosition();
-            if (position >= 0 && position < adapter.getItemCount()) {
-                History history = adapter.displayList.get(position);
-                if (v == itemView) {
-                    openThread(history);
-                } else if (v == delete) {
-                    deleteHistory(history);
-                }
-            }
-
         }
     }
 }
