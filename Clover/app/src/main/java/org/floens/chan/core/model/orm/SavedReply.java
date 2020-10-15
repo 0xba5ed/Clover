@@ -20,7 +20,9 @@ package org.floens.chan.core.model.orm;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import org.floens.chan.core.model.Post;
 import org.floens.chan.core.site.Site;
+import org.floens.chan.core.site.sites.chan4.Chan4ReplyCall;
 
 @DatabaseTable(tableName = "savedreply")
 public class SavedReply {
@@ -45,6 +47,30 @@ public class SavedReply {
         return savedReply;
     }
 
+    public static SavedReply fromPostObject(Post post, String password) {
+        SavedReply savedReply = new SavedReply();
+        savedReply.siteId = post.board.site.id();
+        savedReply.site = post.board.site;
+        savedReply.board = post.board.code;
+        savedReply.no = post.no;
+        savedReply.comment = post.comment.toString();
+        savedReply.password = password;
+        return savedReply;
+    }
+
+    public static SavedReply fromHttpResponse(Loadable loadable, Chan4ReplyCall httpCall) {
+
+        SavedReply savedReply = new SavedReply();
+        savedReply.siteId = loadable.site.id();
+        savedReply.site = loadable.site;
+        savedReply.board = loadable.board.code;
+        savedReply.no = loadable.no;
+        savedReply.comment = httpCall.reply.comment.toString();
+        savedReply.password = httpCall.replyResponse.password;
+        return savedReply;
+
+    }
+
     @DatabaseField(generatedId = true)
     private int id;
 
@@ -64,6 +90,8 @@ public class SavedReply {
 
     @DatabaseField
     public String password = "";
+
+    public String comment = "";
 
     @Override
     public boolean equals(Object o) {

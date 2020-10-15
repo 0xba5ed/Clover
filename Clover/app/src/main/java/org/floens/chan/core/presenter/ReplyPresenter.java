@@ -35,6 +35,7 @@ import org.floens.chan.core.site.SiteAuthentication;
 import org.floens.chan.core.site.http.HttpCall;
 import org.floens.chan.core.site.http.Reply;
 import org.floens.chan.core.site.http.ReplyResponse;
+import org.floens.chan.core.site.sites.chan4.Chan4ReplyCall;
 import org.floens.chan.ui.captcha.AuthenticationLayoutCallback;
 import org.floens.chan.ui.captcha.AuthenticationLayoutInterface;
 import org.floens.chan.ui.activity.ImagePickDelegate;
@@ -224,8 +225,7 @@ public class ReplyPresenter implements AuthenticationLayoutCallback, ImagePickDe
                 }
             }
 
-            SavedReply savedReply = SavedReply.fromSiteBoardNoPassword(
-                    loadable.site, loadable.board, replyResponse.postNo, replyResponse.password);
+            SavedReply savedReply = SavedReply.fromHttpResponse(loadable, (Chan4ReplyCall) httpCall);
             databaseManager.runTaskAsync(databaseManager.getDatabaseSavedReplyManager()
                     .saveReply(savedReply));
 

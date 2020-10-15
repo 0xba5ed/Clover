@@ -128,8 +128,10 @@ public class SavedPostsController extends Controller implements
         new AlertDialog.Builder(context)
                 .setTitle(R.string.saved_reply_clear_confirm)
                 .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.saved_reply_clear_confirm_button, (dialog, which) ->
-                        databaseManager.runTaskAsync(databaseSavedReplyManager.clearSavedReplies()))
+                .setPositiveButton(R.string.saved_reply_clear_confirm_button, (dialog, which) -> {
+                        databaseManager.runTaskAsync(databaseSavedReplyManager.clearSavedReplies());
+                        adapter.load();
+                })
                 .show();
     }
 
@@ -181,14 +183,16 @@ public class SavedPostsController extends Controller implements
         public void onBindViewHolder(PostCell holder, int position) {
             SavedReply savedReply = displayList.get(position);
 
-            for (History historyItem : history) {
-                if (savedReply.no == historyItem.loadable.no) {
-                    holder.thumbnail.setUrl(historyItem.thumbnailUrl, dp(48), dp(48));
-                }
-            }
-
+            holder.thumbnail.hide(true);
             holder.text.setText(String.valueOf(savedReply.no));
-            holder.subtext.setText(savedReply.board);
+
+            // TODO: Temporary until I can add comments to the Database
+            if (savedReply.comment != "") {
+                holder.subtext.setText(savedReply.comment);
+            }
+            else {
+                holder.subtext.setText(savedReply.board);
+            }
         }
 
         @Override

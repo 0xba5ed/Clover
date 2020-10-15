@@ -36,6 +36,7 @@ import org.floens.chan.ui.helper.PinHelper;
 import org.floens.chan.ui.helper.PostHelper;
 import org.floens.chan.ui.view.ThumbnailView;
 import org.floens.chan.utils.AndroidUtils;
+import org.floens.chan.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -238,9 +239,13 @@ public class DrawerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public void updateHighlighted(RecyclerView recyclerView) {
         for (int i = 0; i < pins.size(); i++) {
-            PinViewHolder holder = (PinViewHolder) recyclerView.findViewHolderForAdapterPosition(i + PIN_OFFSET);
-            if (holder != null) {
-                updatePinViewHolder(holder, pins.get(i));
+            try {
+                PinViewHolder holder = (PinViewHolder) recyclerView.findViewHolderForAdapterPosition(i + PIN_OFFSET);
+                if (holder != null) {
+                    updatePinViewHolder(holder, pins.get(i));
+                }
+            }
+            catch (Exception e){
             }
         }
     }
