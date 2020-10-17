@@ -136,6 +136,14 @@ public class DatabaseSavedReplyManager {
         };
     }
 
+    public Callable<SavedReply> removeSavedReply(final SavedReply savedReply) {
+        return () -> {
+            helper.savedDao.delete(savedReply);
+            savedRepliesByNo.remove(savedReply.no);
+            return null;
+        };
+    }
+
     public Callable<SavedReply> findSavedReply(final Board board, final int no) {
         return () -> {
             QueryBuilder<SavedReply, Integer> builder = helper.savedDao.queryBuilder();

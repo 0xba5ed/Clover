@@ -113,17 +113,6 @@ public class SavedPostsController extends Controller implements
         ((ToolbarNavigationController) navigationController).showSearch();
     }
 
-    private void clearHistoryClicked(ToolbarMenuSubItem item) {
-        new AlertDialog.Builder(context)
-                .setTitle(R.string.history_clear_confirm)
-                .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.history_clear_confirm_button, (dialog, which) -> {
-                    databaseManager.runTaskAsync(databaseHistoryManager.clearHistory());
-                    adapter.load();
-                })
-                .show();
-    }
-
     private void clearSavedReplyClicked(ToolbarMenuSubItem item) {
         new AlertDialog.Builder(context)
                 .setTitle(R.string.saved_reply_clear_confirm)
@@ -140,14 +129,16 @@ public class SavedPostsController extends Controller implements
         ChanSettings.historyEnabled.set(isChecked);
     }
 
-    private void openThread(History history) {
-        ViewThreadController viewThreadController = new ViewThreadController(context);
-        viewThreadController.setLoadable(history.loadable);
-        navigationController.pushController(viewThreadController);
+    private void openThread(SavedReply savedReply) {
+        if (savedReply.loadable != null) {
+            ViewThreadController viewThreadController = new ViewThreadController(context);
+            viewThreadController.setLoadable(savedReply.loadable);
+            navigationController.pushController(viewThreadController);
+        }
     }
 
-    private void deleteHistory(History history) {
-        databaseManager.runTask(databaseHistoryManager.removeHistory(history));
+    private void deleteSavedReply(SavedReply savedReply) {
+        databaseManager.runTask(databaseSavedReplyManager.removeSavedReply(savedReply));
         adapter.load();
     }
 
@@ -184,7 +175,14 @@ public class SavedPostsController extends Controller implements
             SavedReply savedReply = displayList.get(position);
 
             holder.thumbnail.hide(true);
-            holder.text.setText(String.valueOf(savedReply.no));
+
+            // TODO: Temporary until I can add loadables to the Database
+            if (savedReply.loadable != null) {
+                holder.text.setText(String.valueOf(savedReply.loadable.title));
+            }
+            else {
+                holder.text.setText(String.valueOf(savedReply.no));
+            }
 
             // TODO: Temporary until I can add comments to the Database
             if (savedReply.comment != "") {
@@ -257,6 +255,17 @@ public class SavedPostsController extends Controller implements
 
         @Override
         public void onClick(View v) {
+            int position = getAdapterPosition();
+            if (position >= 0 && position < adapter.getItemCount()) {
+                SavedReply savedReply = adapter.displayList.get(position);
+                if (v == itemView) {
+                    openThread(savedReply);
+                } else if (v == delete) {
+                    System.out.println("Del");
+                    deleteSavedReply(savedReply);
+                }
+            }
+
         }
     }
 }

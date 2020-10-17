@@ -545,7 +545,7 @@ public class ThreadPresenter implements
                 requestDeletePost(post);
                 break;
             case POST_OPTION_SAVE:
-                SavedReply savedReply = SavedReply.fromPostObject(post, "");
+                SavedReply savedReply = SavedReply.fromPostObject(loadable, post.comment.toString(), "");
                 databaseManager.runTaskAsync(databaseManager.getDatabaseSavedReplyManager().saveReply(savedReply));
                 break;
             case POST_OPTION_PIN:

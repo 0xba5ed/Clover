@@ -47,13 +47,14 @@ public class SavedReply {
         return savedReply;
     }
 
-    public static SavedReply fromPostObject(Post post, String password) {
+    public static SavedReply fromPostObject(Loadable loadable, String comment, String password) {
         SavedReply savedReply = new SavedReply();
-        savedReply.siteId = post.board.site.id();
-        savedReply.site = post.board.site;
-        savedReply.board = post.board.code;
-        savedReply.no = post.no;
-        savedReply.comment = post.comment.toString();
+        savedReply.siteId = loadable.site.id();
+        savedReply.site = loadable.site;
+        savedReply.board = loadable.board.code;
+        savedReply.no = loadable.no;
+        savedReply.loadable = loadable;
+        savedReply.comment = comment;
         savedReply.password = password;
         return savedReply;
     }
@@ -65,6 +66,7 @@ public class SavedReply {
         savedReply.site = loadable.site;
         savedReply.board = loadable.board.code;
         savedReply.no = loadable.no;
+        savedReply.loadable = loadable;
         savedReply.comment = httpCall.reply.comment.toString();
         savedReply.password = httpCall.replyResponse.password;
         return savedReply;
@@ -92,6 +94,8 @@ public class SavedReply {
     public String password = "";
 
     public String comment = "";
+
+    public Loadable loadable;
 
     @Override
     public boolean equals(Object o) {
